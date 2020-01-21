@@ -60,16 +60,13 @@ io.sockets.on('connection', async function (socket) {
     
     let step = 2 // 1-8
     let answers = {}
+    let count = 0;
     socket.on('sendchat', function (data) {
-        
+        count++
         io.sockets.in(socket.room).emit('updatechat', socket.username, data);
         
         if (data.toLowerCase() == 'i love u') {
             io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "I Love U too "+ socket.username +" ❤️❤️❤️");
-            fs.writeFile('./public/love-'+socket.username +'.json', socket.username +"LOVE", function (err) {
-                if (err) throw err;
-                console.log('File is created successfully.');
-            }); 
         }else{
             if (step == 1) {
                 socket.emit('updatechat', 'BukaKopiBot', 'Siapa username Kamu?');
