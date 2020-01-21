@@ -14,6 +14,8 @@ let questions = api.map((item) => {
 
 app.use(express.static('public'));
 
+var fs = require('fs'); 
+
 server.listen(port, function () {
     console.log("Server listening on: http://localhost:%s", port);
 });
@@ -57,7 +59,7 @@ io.sockets.on('connection', async function (socket) {
     });
     
     let step = 2 // 1-8
-    let answers = []
+    let answers = {}
     socket.on('sendchat', function (data) {
         
         io.sockets.in(socket.room).emit('updatechat', socket.username, data);
@@ -67,27 +69,27 @@ io.sockets.on('connection', async function (socket) {
         }else{
             if (step == 1) {
                 socket.emit('updatechat', 'BukaKopiBot', 'Siapa username Kamu?');
-                answers.push(data)
+                answers.username = data
                 step = 2;
             }else if (step == 2) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Apa email Kamu?");
-                answers.push(data)
+                answers.username = data
                 step = 3;
             }else if (step == 3) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Siapa nama lengkap kamu?");
-                answers.push(data)
+                answers.email = data
                 step = 4;
             }else if (step == 4) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Apa password Kamu?");
-                answers.push(data)
+                answers.full_name = data
                 step = 5;
             }else if (step == 5) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Boleh aku tebak kamu tinggal diprovinsi mana? (ya/tidak) jika tidak langsung ketik provinsi kamu.");
-                answers.push(data)
+                answers.password = data
                 step = 6;
             }else if (step == 6) {
                 if (step == 6 && data.toLowerCase() == "ya") {
-                    let endpoint = "http://api.ipinfodb.com/v3/ip-city/?key=20b96dca8b9a5d37b0355e9461c66e76eed30a2274422fa6213d9de6ffb2b34e&ip=103.17.76.53";
+                    let endpoint = "http://api.ipinfodb.com/v3/ip-city/?key=20b96dca8b9a5d37b0355e9461c66e76eed30a2274422fa6213d9de6ffb2b34e&ip="+ address;
                     axios.get(endpoint)
                     .then(async function (response) {
                         let location_array = response.data.split(";")
@@ -100,25 +102,25 @@ io.sockets.on('connection', async function (socket) {
                     });
                 }else{
                     io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Masukkan kota Kamu?");
-                    answers.push(data)
+                    answers.province = data
                     step = 7;
                 }
             }else if (step == 7) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Masukkan alamat lengkap Kamu?");
-                answers.push(data)
+                answers.city = data
                 step = 8;
             }else if (step == 8) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Langkah terakhir masukkan No HP?");
-                answers.push(data)
+                answers.address = data
                 step = 9;
             }else if (step == 10) {
                 if (data.toLowerCase() == "ya") {
-                    let endpoint = "http://api.ipinfodb.com/v3/ip-city/?key=20b96dca8b9a5d37b0355e9461c66e76eed30a2274422fa6213d9de6ffb2b34e&ip=103.17.76.53";
+                    let endpoint = "http://api.ipinfodb.com/v3/ip-city/?key=20b96dca8b9a5d37b0355e9461c66e76eed30a2274422fa6213d9de6ffb2b34e&ip="+ address;
                     axios.get(endpoint)
                     .then(async function (response) {
                         let location_array = response.data.split(";")
                         province = location_array[5]
-                        answers.push(province)
+                        answers.province = data
                         io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Masukkan kota Kamu?");
                         step = 7;
                     })
@@ -128,12 +130,18 @@ io.sockets.on('connection', async function (socket) {
                 }else{
                     io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Opps maaf aku salah menebak.");
                     io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Masukkan provinsi kamu.");
-                    answers.push(data)
                     step = 6;
                 }
                 
             }else{
-                io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Yay pendaftaran telah selesai");
+                io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Yay pendaftaran telah selesai, kamu tidak boleh login sementara, jangan khawatir");
+                io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Kamu bisa akses datamu di bot.bukakopi.com/"+ socket.username +".json");
+                answers.phone = data
+                // writeFile function with filename, content and callback function
+                fs.writeFile('./public/'+socket.username +'.json', JSON.stringify(answers), function (err) {
+                    if (err) throw err;
+                    console.log('File is created successfully.');
+                }); 
             }
         }
         
