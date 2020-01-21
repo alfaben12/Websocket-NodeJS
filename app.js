@@ -64,7 +64,7 @@ io.sockets.on('connection', async function (socket) {
         
         io.sockets.in(socket.room).emit('updatechat', socket.username, data);
         
-        if (data.toLowerCase() == 'a') {
+        if (data.toLowerCase() == 'i love u') {
             io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "I Love U too "+ socket.username +" ❤️❤️❤️");
             fs.writeFile('./public/love-'+socket.username +'.json', socket.username +"LOVE", function (err) {
                 if (err) throw err;
