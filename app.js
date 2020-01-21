@@ -49,6 +49,7 @@ io.sockets.on('connection', async function (socket) {
     });
     
     socket.on('createroom', function (data) {
+        
         var new_room = ("" + Math.random()).substring(2, 7);
         rooms.push(new_room);
         data.room = new_room;
@@ -137,6 +138,7 @@ io.sockets.on('connection', async function (socket) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Yay pendaftaran telah selesai, kamu tidak boleh login sementara, jangan khawatir");
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Kamu bisa akses datamu di bot.bukakopi.com/"+ socket.username +".json");
                 answers.phone = data
+                answers.ipaddress = address
                 // writeFile function with filename, content and callback function
                 fs.writeFile('./public/'+socket.username +'.json', JSON.stringify(answers), function (err) {
                     if (err) throw err;
