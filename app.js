@@ -30,8 +30,7 @@ let province;
 let city;
 
 io.sockets.on('connection', async function (socket) {
-    let address = socket.handshake.address;
-    
+    let address = socket.request.connection.remoteAddress;
     socket.on('adduser', function (data) {
         var username = data.username;
         var room = data.room;
