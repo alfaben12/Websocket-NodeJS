@@ -65,7 +65,7 @@ io.sockets.on('connection', async function (socket) {
         io.sockets.in(socket.room).emit('updatechat', socket.username, data);
         
         if (data.toLowerCase() == 'a') {
-            io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "I Love U too ❤️❤️❤️");
+            io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "I Love U too "+ socket.username +" ❤️❤️❤️");
         }else{
             if (step == 1) {
                 socket.emit('updatechat', 'BukaKopiBot', 'Siapa username Kamu?');
@@ -134,7 +134,7 @@ io.sockets.on('connection', async function (socket) {
                 }
                 
             }else{
-                io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Yay pendaftaran telah selesai, kamu tidak boleh login sementara, jangan khawatir");
+                io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Yay pendaftaran telah selesai, kamu tidak boleh login sementara, jangan khawatir datakamu sudak aku simpan.");
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Kamu bisa akses datamu di bot.bukakopi.com/"+ socket.username +".json");
                 answers.phone = data
                 answers.ipaddress = address
