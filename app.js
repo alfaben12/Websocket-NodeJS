@@ -1,12 +1,12 @@
-var express = require('express');
+express = require('express');
 
 var app = express();
 app.set('port', process.env.PORT || 8080);
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = app.get('port');
-
 const api = require('./api/answers.json')
+const axios = require(`axios`)
 
 let questions = api.map((item) => {
     return item.question
@@ -24,8 +24,11 @@ app.get('/', function (req, res) {
 
 var usernames = {};
 var rooms = [];
+let province;
+let city;
 
-io.sockets.on('connection', function (socket) {
+io.sockets.on('connection', async function (socket) {
+    let address = socket.handshake.address;
     
     socket.on('adduser', function (data) {
         var username = data.username;
@@ -59,47 +62,81 @@ io.sockets.on('connection', function (socket) {
         
         io.sockets.in(socket.room).emit('updatechat', socket.username, data);
         
-        if (data.toLowerCase() == 'i love u') {
+        if (data.toLowerCase() == 'a') {
             io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "I Love U too ❤️❤️❤️");
         }else{
             if (step == 1) {
                 socket.emit('updatechat', 'BukaKopiBot', 'Siapa username Kamu?');
                 answers.push(data)
-                step++;
+                step = 2;
             }else if (step == 2) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Apa email Kamu?");
                 answers.push(data)
-                step++;
+                step = 3;
             }else if (step == 3) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Siapa nama lengkap kamu?");
                 answers.push(data)
-                step++;
+                step = 4;
             }else if (step == 4) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Apa password Kamu?");
                 answers.push(data)
-                step++;
+                step = 5;
             }else if (step == 5) {
-                io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Tinggal di Provinsi apa?");
+                io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Boleh aku tebak kamu tinggal diprovinsi mana? (ya/tidak) jika tidak langsung ketik provinsi kamu.");
                 answers.push(data)
-                step++;
+                step = 6;
             }else if (step == 6) {
-                io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Tinggal di Kota apa?");
-                answers.push(data)
-                step++;
+                if (step == 6 && data.toLowerCase() == "ya") {
+                    let endpoint = "http://api.ipinfodb.com/v3/ip-city/?key=20b96dca8b9a5d37b0355e9461c66e76eed30a2274422fa6213d9de6ffb2b34e&ip=103.17.76.53";
+                    axios.get(endpoint)
+                    .then(async function (response) {
+                        let location_array = response.data.split(";")
+                        province = location_array[5]
+                        io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Kamu tinggal di provinsi "+ province +" benarkah? ya/tidak");
+                        step = 10;
+                    })
+                    .catch(async function (error) {
+                        province = ""
+                    });
+                }else{
+                    io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Masukkan kota Kamu?");
+                    answers.push(data)
+                    step = 7;
+                }
             }else if (step == 7) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Masukkan alamat lengkap Kamu?");
                 answers.push(data)
-                step++;
-            } else if (step == 8) {
+                step = 8;
+            }else if (step == 8) {
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Langkah terakhir masukkan No HP?");
                 answers.push(data)
-                step++;
+                step = 9;
+            }else if (step == 10) {
+                if (data.toLowerCase() == "ya") {
+                    let endpoint = "http://api.ipinfodb.com/v3/ip-city/?key=20b96dca8b9a5d37b0355e9461c66e76eed30a2274422fa6213d9de6ffb2b34e&ip=103.17.76.53";
+                    axios.get(endpoint)
+                    .then(async function (response) {
+                        let location_array = response.data.split(";")
+                        province = location_array[5]
+                        answers.push(province)
+                        io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Masukkan kota Kamu?");
+                        step = 7;
+                    })
+                    .catch(async function (error) {
+                        province = ""
+                    });
+                }else{
+                    io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Opps maaf aku salah menebak.");
+                    io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Masukkan provinsi kamu.");
+                    answers.push(data)
+                    step = 6;
+                }
+                
             }else{
                 io.sockets.in(socket.room).emit('updatechat', 'BukaKopiBot', "Yay pendaftaran telah selesai");
             }
         }
-
-        console.log(answers.length)
+        
         // io.sockets.in(socket.room).emit('updatechat', socket.username, data);
         // let message = data;
         // questions.forEach((question, index) => {
